@@ -4,10 +4,12 @@ const router = express.Router();
 
 const users = [
   { id: 1, name: "Alice", role: "User" },
-  { id: 2, name: "Bob", role: "Admin" }
+  { id: 2, name: "Bob", role: "Admin" },
+  { id: 3, name: "Magdalena", role: "User" }
 ];
 
-// GET list users
+const uppercasePipe = require("../pipes/uppercasePipe");
+
 router.get("/list", (req, res) => {
   res.json(users);
 });
@@ -26,6 +28,17 @@ router.post("/add", (req, res) => {
   users.push(newUser);
 
   res.status(201).json(newUser);
+});
+
+// GET uppercase for a given name (example: /users/uppercase/magdalena)
+router.get("/uppercase/:name", (req, res) => {
+  const { name } = req.params;
+  if (!name) {
+    return res.status(400).json({ error: "Name parameter is required" });
+  }
+
+  const upper = uppercasePipe(name);
+  return res.json({ original: name, uppercase: upper });
 });
 
 module.exports = router;
