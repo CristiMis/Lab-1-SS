@@ -2,13 +2,12 @@ const express = require("express");
 const router = express.Router();
 const products = require("../data/products");
 const roleMiddleware = require("../middleware/roleMiddleware");
+const uppercasePipe = require("../pipes/uppercasePipe");
 
-// Nivel 5: /list → listă statică
 router.get("/list", (req, res) => {
   res.json(products);
 });
 
-// Nivel 6: /details/:id
 router.get("/details/:id", (req, res) => {
   const id = parseInt(req.params.id);
   const product = products.find(p => p.id === id);
@@ -18,7 +17,22 @@ router.get("/details/:id", (req, res) => {
   res.json(product);
 });
 
-// Nivel 8: /search
+router.get("/search-by-name", (req, res) => {
+  const { name } = req.query;
+  
+  if (!name) {
+    return res.status(400).json({ error: "Name parameter is required" });
+  }
+  
+  const searchTerm = uppercasePipe(name);
+  
+  const result = products.filter(p =>
+    uppercasePipe(p.name).includes(searchTerm)
+  );
+  
+  res.json(result);
+});
+
 router.get("/search", (req, res) => {
   const { name, minPrice, maxPrice } = req.query;
   let result = products;
@@ -38,7 +52,6 @@ router.get("/search", (req, res) => {
   res.json(result);
 });
 
-// Nivel 9: /admin/edit/:id (doar admin)
 router.put("/admin/edit/:id", roleMiddleware("Admin"), (req, res) => {
   const id = parseInt(req.params.id);
   const product = products.find(p => p.id === id);
@@ -50,7 +63,6 @@ router.put("/admin/edit/:id", roleMiddleware("Admin"), (req, res) => {
   res.json(product);
 });
 
-// Nivel 10: Raport (doar admin)
 router.get("/admin/reports", roleMiddleware("Admin"), (req, res) => {
   res.json({
     totalProducts: products.length,
