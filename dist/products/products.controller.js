@@ -14,12 +14,60 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProductsController = void 0;
 const common_1 = require("@nestjs/common");
+const platform_express_1 = require("@nestjs/platform-express");
 const products_service_1 = require("./products.service");
 const create_product_dto_1 = require("./dto/create-product.dto");
 const update_product_dto_1 = require("./dto/update-product.dto");
+const file_validation_pipe_1 = require("../common/pipes/file-validation.pipe");
 let ProductsController = class ProductsController {
     constructor(productsService) {
         this.productsService = productsService;
+    }
+    async importCSV(file) {
+        // Validate file using pipe
+        new file_validation_pipe_1.FileValidationPipe().transform({ file }, {});
+        try {
+            const result = await this.productsService.importFromCSV(file.buffer);
+            return result;
+        }
+        catch (error) {
+            throw new common_1.BadRequestException(`Failed to import CSV: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    }
+    exportCSV(minPrice, maxPrice, categoryId, inStock, res) {
+        const query = {};
+        if (minPrice) {
+            const parsedMinPrice = parseFloat(minPrice);
+            if (isNaN(parsedMinPrice)) {
+                throw new common_1.BadRequestException('minPrice must be a valid number');
+            }
+            query.minPrice = parsedMinPrice;
+        }
+        if (maxPrice) {
+            const parsedMaxPrice = parseFloat(maxPrice);
+            if (isNaN(parsedMaxPrice)) {
+                throw new common_1.BadRequestException('maxPrice must be a valid number');
+            }
+            query.maxPrice = parsedMaxPrice;
+        }
+        if (categoryId) {
+            const parsedCategoryId = parseInt(categoryId, 10);
+            if (isNaN(parsedCategoryId)) {
+                throw new common_1.BadRequestException('categoryId must be a valid integer');
+            }
+            query.categoryId = parsedCategoryId;
+        }
+        if (inStock !== undefined && inStock !== '') {
+            if (inStock !== 'true' && inStock !== 'false') {
+                throw new common_1.BadRequestException('inStock must be true or false');
+            }
+            query.inStock = inStock === 'true';
+        }
+        const csv = this.productsService.exportToCSV(Object.keys(query).length > 0 ? query : undefined);
+        // Set response headers for file download
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename="products.csv"');
+        res.send(csv);
     }
     create(createProductDto) {
         return this.productsService.create(createProductDto);
@@ -78,6 +126,25 @@ let ProductsController = class ProductsController {
     }
 };
 exports.ProductsController = ProductsController;
+__decorate([
+    (0, common_1.Post)('import'),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file')),
+    __param(0, (0, common_1.UploadedFile)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], ProductsController.prototype, "importCSV", null);
+__decorate([
+    (0, common_1.Get)('export'),
+    __param(0, (0, common_1.Query)('minPrice')),
+    __param(1, (0, common_1.Query)('maxPrice')),
+    __param(2, (0, common_1.Query)('categoryId')),
+    __param(3, (0, common_1.Query)('inStock')),
+    __param(4, (0, common_1.Response)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String, String, Object]),
+    __metadata("design:returntype", void 0)
+], ProductsController.prototype, "exportCSV", null);
 __decorate([
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),

@@ -4,6 +4,17 @@ import { UpdateProductDto } from './dto/update-product.dto';
 export declare class ProductsController {
     private readonly productsService;
     constructor(productsService: ProductsService);
+    importCSV(file: any): Promise<{
+        imported: number;
+        failed: number;
+        invalidRecords: Array<{
+            rowIndex: number;
+            data: Record<string, string>;
+            errors: string[];
+        }>;
+        message: string;
+    }>;
+    exportCSV(minPrice?: string, maxPrice?: string, categoryId?: string, inStock?: string, res?: any): void;
     create(createProductDto: CreateProductDto): import("./entities/product.entity").Product;
     findAll(minPrice?: string, maxPrice?: string, categoryId?: string, inStock?: string): import("./entities/product.entity").Product[];
     findOne(id: number): import("./entities/product.entity").Product;

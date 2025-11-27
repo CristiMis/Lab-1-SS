@@ -1,0 +1,2 @@
+id,name,description,price,stock,categoryId,inStock,discount,createdAt,updatedAt
+1,Laptop Dell XPS,Powerful laptop for developers,1299.99,50,1,true,10,,

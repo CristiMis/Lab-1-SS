@@ -1,0 +1,4 @@
+id,name,description,price,stock,categoryId,inStock,discount,createdAt,updatedAt
+1,Laptop Dell XPS,Powerful laptop for developers,1299.99,50,1,true,10,,
+4,MacBook Pro 14,Powerful laptop for professionals,2499.99,30,1,true,15,Thu Nov 27 2025 11:29:30 GMT+0200 (Eastern European Standard Time),Thu Nov 27 2025 11:29:30 GMT+0200 (Eastern European Standard Time)
+9,ValidProduct1,This is a valid product with complete information,199.99,50,1,true,,Thu Nov 27 2025 11:29:30 GMT+0200 (Eastern European Standard Time),Thu Nov 27 2025 11:29:30 GMT+0200 (Eastern European Standard Time)

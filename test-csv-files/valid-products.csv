@@ -1,0 +1,6 @@
+name,description,price,stock,categoryId,inStock,hasDiscount,discount
+MacBook Pro 14,Powerful laptop for professionals,2499.99,30,1,true,true,15
+iPhone 16 Pro,Latest generation smartphone,1199.99,50,2,true,false,
+Samsung TV 55,Ultra HD smart TV,799.99,20,3,true,true,10
+Sony Headphones,Premium noise cancelling headphones,349.99,100,4,true,false,
+iPad Air,Versatile tablet device,649.99,40,5,true,true,8

@@ -2,9 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
+import { CsvParserService } from '../common/services/csv-parser.service';
 
 @Injectable()
 export class ProductsService {
+  constructor(private readonly csvParserService: CsvParserService) {}
   private products: Product[] = [
     {
       id: 1,
@@ -105,5 +107,95 @@ export class ProductsService {
     }
     this.products.splice(index, 1);
     return true;
+  }
+
+  /**
+   * Imports products from CSV file
+   */
+  async importFromCSV(
+    fileBuffer: Buffer,
+  ): Promise<{
+    imported: number;
+    failed: number;
+    invalidRecords: Array<{
+      rowIndex: number;
+      data: Record<string, string>;
+      errors: string[];
+    }>;
+    message: string;
+  }> {
+    // Parse CSV
+    const rows = this.csvParserService.parseCSV(fileBuffer);
+
+    if (rows.length < 2) {
+      throw new Error('CSV file must contain at least a header and one data row');
+    }
+
+    // Column mapping - expected columns in DTO
+    const columnMapping = [
+      'name',
+      'description',
+      'price',
+      'stock',
+      'categoryId',
+      'inStock',
+      'hasDiscount',
+      'discount',
+    ];
+
+    // Validate rows against CreateProductDto
+    const validationResult = await this.csvParserService.validateRows(
+      rows,
+      CreateProductDto,
+      columnMapping,
+    );
+
+    // Create valid products
+    const createdProducts: Product[] = [];
+    for (const validRecord of validationResult.validRecords) {
+      const product = this.create(validRecord as CreateProductDto);
+      createdProducts.push(product);
+    }
+
+    return {
+      imported: createdProducts.length,
+      failed: validationResult.invalidRecords.length,
+      invalidRecords: validationResult.invalidRecords,
+      message: `Successfully imported ${createdProducts.length} products. ${validationResult.invalidRecords.length} records had validation errors.`,
+    };
+  }
+
+  /**
+   * Exports products to CSV format with optional filtering
+   */
+  exportToCSV(query?: {
+    minPrice?: number;
+    maxPrice?: number;
+    categoryId?: number;
+    inStock?: boolean;
+  }): string {
+    // Get filtered products
+    let productsToExport = this.products;
+
+    if (query) {
+      productsToExport = this.findByQuery(query);
+    }
+
+    // Define columns to export (exclude sensitive fields)
+    const columns = [
+      'id',
+      'name',
+      'description',
+      'price',
+      'stock',
+      'categoryId',
+      'inStock',
+      'discount',
+      'createdAt',
+      'updatedAt',
+    ];
+
+    // Convert to CSV
+    return this.csvParserService.convertToCSV(productsToExport, columns);
   }
 }

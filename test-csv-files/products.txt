@@ -1,0 +1,5 @@
+name,description,price,stock,categoryId,inStock,hasDiscount,discount
+TestProduct1,This is a test product,199.99,50,1,true,false,
+TestProduct2,Another test product,299.99,30,2,true,true,5
+TestProduct3,Third test product,449.99,20,3,true,true,12
+TestProduct4,Fourth test product,599.99,15,4,true,false,
